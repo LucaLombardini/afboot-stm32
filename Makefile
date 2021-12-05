@@ -24,6 +24,11 @@ all: stm32f429i-disco stm32429i-eval stm32f469i-disco stm32746g-eval stm32h743i-
 %.o: %.c
 	$(CC) -c $(CFLAGS) -DKERNEL_ADDR=$(KERNEL_ADDR) -DDTB_ADDR=$(DTB_ADDR) $< -o $@
 
+stm32f401re-nucleo: stm32f401re-nucleo.o $(obj-f4)
+	$(LD) -T stm32f401.lds $(LINKERFLAGS) -o stm32f401re-nucleo.elf stm32f401re-nucleo.o $(obj-f4)
+	$(OBJCOPY) -Obinary stm32f401re-nucleo.elf stm32f401re-nucleo.bin
+	$(SIZE) stm32f401re-nucleo.elf
+
 stm32f429i-disco: stm32f429i-disco.o $(obj-f4)
 	$(LD) -T stm32f429.lds $(LINKERFLAGS) -o stm32f429i-disco.elf stm32f429i-disco.o $(obj-f4)
 	$(OBJCOPY) -Obinary stm32f429i-disco.elf stm32f429i-disco.bin
@@ -51,6 +56,16 @@ stm32h743i-eval: stm32h743i-eval.o $(obj-f7)
 
 clean:
 	@rm -f *.o *.elf *.bin *.lst
+
+flash_stm32f401re-nucleo: stm32f401re-nucleo
+	$(OPENOCD) -f board/st_nucleo_f4.cfg \
+		-c "init" \
+		-c "reset init" \
+		-c "flash probe 0" \
+		-c "flash info 0" \
+		-c "flash write_image erase stm32f401re-nucleo.bin 0x08000000" \
+		-c "reset run" \
+		-c "shutdown"
 
 flash_stm32f429i-disco: stm32f429i-disco
 	$(OPENOCD) -f board/stm32f429discovery.cfg \
