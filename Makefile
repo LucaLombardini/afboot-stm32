@@ -13,13 +13,14 @@ DTB_ADDR?=0x08004000
 CFLAGS := -mthumb -mcpu=cortex-m4
 CFLAGS += -ffunction-sections -fdata-sections
 CFLAGS += -Os -std=gnu99 -Wall
-LINKERFLAGS := -nostartfiles --gc-sections
+LINKERFLAGS := --gc-sections
+#LINKERFLAGS := -nostartfiles --gc-sections
 
 obj-y += gpio.o mpu.o qspi.o start_kernel.o
 obj-f4 += $(obj-y) usart-f4.o
 obj-f7 += $(obj-y) usart-f7.o
 
-all: stm32f429i-disco stm32429i-eval stm32f469i-disco stm32746g-eval stm32h743i-eval
+all: stm32f429i-disco stm32429i-eval stm32f469i-disco stm32746g-eval stm32h743i-eval stm32h743zi-nucleo
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) -DKERNEL_ADDR=$(KERNEL_ADDR) -DDTB_ADDR=$(DTB_ADDR) $< -o $@
@@ -48,6 +49,11 @@ stm32h743i-eval: stm32h743i-eval.o $(obj-f7)
 	$(LD) -T stm32h743.lds $(LINKERFLAGS) -o stm32h743i-eval.elf stm32h743i-eval.o $(obj-f7)
 	$(OBJCOPY) -Obinary stm32h743i-eval.elf stm32h743i-eval.bin
 	$(SIZE) stm32h743i-eval.elf
+
+stm32h743zi-nucleo: stm32h743zi-nucleo.o $(obj-f7)
+	$(LD) -T stm32h743.lds $(LINKERFLAGS) -o stm32h743zi-nucleo.elf stm32h743zi-nucleo.o $(obj-f7)
+	$(OBJCOPY) -Obinary stm32h743zi-nucleo.elf stm32h743zi-nucleo.bin
+	$(SIZE) stm32h743zi-nucleo.elf
 
 clean:
 	@rm -f *.o *.elf *.bin *.lst
